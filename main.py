@@ -204,6 +204,6 @@ async def main():
     #создать предметы
     #await create_predmety()
     #await create_stupeni()
-app.include_router(router)
+#app.include_router(router)
 if __name__ == "__main__":
     asyncio.run(main())
