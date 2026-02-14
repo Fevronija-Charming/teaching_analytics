@@ -4,7 +4,8 @@ import os
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
-router=RabbitRouter(host="localhost", port=5672)
+#выключаем зайца
+#router=RabbitRouter(host="localhost", port=5672)
 from fastapi import FastAPI
 from fastapi import HTTPException
 app = FastAPI()
@@ -67,7 +68,7 @@ class Urok_Schema(BaseModel):
     Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
     Задание_На_Дом: str= Field(min_length=5, max_length=128)
     Примечание: str= Field(min_length=5, max_length=2000)
-@router.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
+@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
     try:
         urok_eksemp = Уроки(Имя_Преподавателя=urok.Имя_Преподавателя,Фамилия_Преподавателя=urok.Фамилия_Преподавателя,
@@ -83,8 +84,9 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
         await session.commit()
         await session.close()
         try:
-            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
-            await router.broker.publish(message=f"{urok}", queue="UROKI")
+            #выключаем зайца
+            #router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            #await router.broker.publish(message=f"{urok}", queue="UROKI")
             return urok_eksemp
         except:
             raise HTTPException(status_code=500, detail="Проблема с брокером")
