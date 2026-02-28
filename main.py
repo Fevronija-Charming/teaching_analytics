@@ -104,14 +104,19 @@ async def get_vedomost():
     zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения DESC;"
     cursor.execute(zapros)
     vedomost=[]
+    zarplata=0
+    chasy=0
     wb=Workbook()
     ws=wb.active
     ws.title="Ведомость"
     while True:
         next_row = cursor.fetchone()
+        zarplata=zarplata+next_row[9]/100
+        chasy=chasy+next_row[8]/60
         if next_row:
             vedomost.append(next_row)
             ws.append(next_row)
+            ws.append([zarplata,chasy])
         else:
             try:
                 wb.save("Посчитать зарплату.xlsx")
