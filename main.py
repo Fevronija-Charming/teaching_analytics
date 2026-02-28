@@ -1,4 +1,6 @@
 from pydantic import BaseModel, Field, ValidationError
+from openpyxl import Workbook
+import psycopg2 as ps
 import asyncio
 import os
 from colorama import *
@@ -13,31 +15,32 @@ import uvicorn
 load_dotenv(find_dotenv())
 from typing import Annotated
 from fastapi import Depends
+from fastapi.responses import FileResponse
 #работа с базой данных
 from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
+engine = create_async_engine(os.getenv("DBURLHEROKU"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
 class Base(DeclarativeBase):
     pass
-class Ученики(Base):
-    __tablename__="Ученики"
-    id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Фамилия: Mapped[str]=mapped_column(String(128), nullable=False)
-    Имя: Mapped[str]=mapped_column(String(128), nullable=False)
-class Предметы(Base):
-    __tablename__="Предметы"
-    id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Название_Предмета: Mapped[str]=mapped_column(String(32), nullable=False)
-class Даты(Base):
-    __tablename__="Даты"
-    id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Дата: Mapped[str]=mapped_column(String(128), nullable=False)
-class Ступени_Обучения(Base):
-    __tablename__ = "Ступени_Обучения"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
+#class Ученики(Base):
+#__tablename__="Ученики"
+#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
+#Фамилия: Mapped[str]=mapped_column(String(128), nullable=False)
+#Имя: Mapped[str]=mapped_column(String(128), nullable=False)
+#class Предметы(Base):
+#__tablename__="Предметы"
+#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
+#Название_Предмета: Mapped[str]=mapped_column(String(32), nullable=False)
+#class Даты(Base):
+# __tablename__="Даты"
+#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
+#Дата: Mapped[str]=mapped_column(String(128), nullable=False)
+#class Ступени_Обучения(Base):
+# __tablename__ = "Ступени_Обучения"
+#id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
+#Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
 class Уроки(Base):
     __tablename__ = "Уроки"
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
@@ -92,6 +95,31 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
             raise HTTPException(status_code=500, detail="Проблема с брокером")
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
+@app.get("/vedomost", summary="Получить ведомость", tags=["ВЕДОМОСТЬ"])
+async def get_vedomost():
+    connection = ps.connect(host=os.getenv("DBHOSTHEROKU"), database=os.getenv("DATABASENAMEHEROKU"),
+    user=os.getenv("DBUSERHEROKU"),password=os.getenv("DBPASSWORDHEROKU"), port=os.getenv("DBPORTHEROKU"))
+    # создание интерфейса для sql запроса
+    cursor = connection.cursor()
+    zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения DESC;"
+    cursor.execute(zapros)
+    vedomost=[]
+    wb=Workbook()
+    ws=wb.active
+    ws.title="Ведомость"
+    while True:
+        next_row = cursor.fetchone()
+        if next_row:
+            vedomost.append(next_row)
+            ws.append(next_row)
+        else:
+            try:
+                wb.save("Посчитать зарплату.xlsx")
+                return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
+                    media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            except:
+                return {"error": "File not found"}
+
 @app.get("/zapr", summary="Посчитать зарплату",tags=["ЗАРПЛАТА"])
 async def get_zapr():
     summa=0
@@ -143,58 +171,58 @@ async def create_tables():
     async with engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
 # пока выключил этот функционал не нужен
-async def create_predmety():
-    predmet_eksempjar1=Предметы(Название_Предмета="Математика")
-    session=session_factory()
-    session.add(predmet_eksempjar1)
-    await session.commit()
-    await session.close()
-    predmet_eksempjar2 = Предметы(Название_Предмета="Физика")
-    session = session_factory()
-    session.add(predmet_eksempjar2)
-    await session.commit()
-    await session.close()
-    predmet_eksempjar3 = Предметы(Название_Предмета="Биология")
-    session = session_factory()
-    session.add(predmet_eksempjar3)
-    await session.commit()
-    await session.close()
-    predmet_eksempjar4 = Предметы(Название_Предмета="Химия")
-    session = session_factory()
-    session.add(predmet_eksempjar4)
-    await session.commit()
-    await session.close()
-    predmet_eksempjar5=Предметы(Название_Предмета="Английский")
-    session = session_factory()
-    session.add(predmet_eksempjar5)
-    await session.commit()
-    await session.close()
-async def create_stupeni():
-    stupen_eksemprjar1=Ступени_Обучения(Ступень_Обучения="7-8-9 классы")
-    session = session_factory()
-    session.add(stupen_eksemprjar1)
-    await session.commit()
-    await session.close()
-    stupen_eksemprjar2 = Ступени_Обучения(Ступень_Обучения="5-6-7 классы")
-    session = session_factory()
-    session.add(stupen_eksemprjar2)
-    await session.commit()
-    await session.close()
-    stupen_eksemprjar3 = Ступени_Обучения(Ступень_Обучения="Гимназия-Техникум")
-    session = session_factory()
-    session.add(stupen_eksemprjar3)
-    await session.commit()
-    await session.close()
-    stupen_eksemprjar4 = Ступени_Обучения(Ступень_Обучения="Студенты_Абитурьенты")
-    session = session_factory()
-    session.add(stupen_eksemprjar4)
-    await session.commit()
-    await session.close()
-    stupen_eksemprjar5 = Ступени_Обучения(Ступень_Обучения="1-2-3-4 классы")
-    session = session_factory()
-    session.add(stupen_eksemprjar5)
-    await session.commit()
-    await session.close()
+# async def create_predmety():
+# predmet_eksempjar1=Предметы(Название_Предмета="Математика")
+# session=session_factory()
+# session.add(predmet_eksempjar1)
+# await session.commit()
+# await session.close()
+# predmet_eksempjar2 = Предметы(Название_Предмета="Физика")
+# session = session_factory()
+# session.add(predmet_eksempjar2)
+# await session.commit()
+# await session.close()
+# predmet_eksempjar3 = Предметы(Название_Предмета="Биология")
+# session = session_factory()
+# session.add(predmet_eksempjar3)
+# await session.commit()
+# await session.close()
+# predmet_eksempjar4 = Предметы(Название_Предмета="Химия")
+# session = session_factory()
+# session.add(predmet_eksempjar4)
+# await session.commit()
+# await session.close()
+# predmet_eksempjar5=Предметы(Название_Предмета="Английский")
+# session = session_factory()
+# session.add(predmet_eksempjar5)
+# await session.commit()
+# await session.close()
+# async def create_stupeni():
+# stupen_eksemprjar1=Ступени_Обучения(Ступень_Обучения="7-8-9 классы")
+# session = session_factory()
+# session.add(stupen_eksemprjar1)
+# await session.commit()
+# await session.close()
+# stupen_eksemprjar2 = Ступени_Обучения(Ступень_Обучения="5-6-7 классы")
+# session = session_factory()
+# session.add(stupen_eksemprjar2)
+# await session.commit()
+# await session.close()
+# stupen_eksemprjar3 = Ступени_Обучения(Ступень_Обучения="Гимназия-Техникум")
+# session = session_factory()
+# session.add(stupen_eksemprjar3)
+# await session.commit()
+# await session.close()
+#stupen_eksemprjar4 = Ступени_Обучения(Ступень_Обучения="Студенты_Абитурьенты")
+#session = session_factory()
+#session.add(stupen_eksemprjar4)
+#await session.commit()
+#await session.close()
+# stupen_eksemprjar5 = Ступени_Обучения(Ступень_Обучения="1-2-3-4 классы")
+# session = session_factory()
+# session.add(stupen_eksemprjar5)
+# await session.commit()
+# await session.close()
 
 async def main():
     init(autoreset=True)
