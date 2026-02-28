@@ -116,9 +116,9 @@ async def get_vedomost():
             zarplata=zarplata+(next_row[10])/100
             vedomost.append(next_row)
             ws.append(next_row)
-            ws.append([zarplata,chasy])
         else:
             try:
+                ws.append([zarplata, chasy])
                 wb.save("Посчитать зарплату.xlsx")
                 return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
                     media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
