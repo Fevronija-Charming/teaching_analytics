@@ -118,6 +118,7 @@ async def get_vedomost():
             ws.append(next_row)
         else:
             try:
+                ws.append(["/","/","/","/","/","/","/","/","/"])
                 ws.append([zarplata, chasy])
                 wb.save("Посчитать зарплату.xlsx")
                 return FileResponse(path="Посчитать зарплату.xlsx", filename="Посчитать зарплату.xlsx",
