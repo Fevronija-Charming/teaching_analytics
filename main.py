@@ -97,7 +97,7 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.get("/vedomost", summary="Получить ведомость", tags=["ВЕДОМОСТЬ"])
 async def get_vedomost():
-    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAMEOLD"), user=os.getenv("DBUSERNAME"),
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"), user=os.getenv("DBUSERNAME"),
                             password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
     # создание интерфейса для sql запроса
     cursor = connection.cursor()
