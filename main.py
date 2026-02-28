@@ -20,7 +20,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text, select
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
-engine = create_async_engine(os.getenv("DBURLHEROKU"),echo=True,max_overflow=5,pool_size=5)
+engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
 class Base(DeclarativeBase):
     pass
@@ -97,8 +97,8 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
 @app.get("/vedomost", summary="Получить ведомость", tags=["ВЕДОМОСТЬ"])
 async def get_vedomost():
-    connection = ps.connect(host=os.getenv("DBHOSTHEROKU"), database=os.getenv("DATABASENAMEHEROKU"),
-    user=os.getenv("DBUSERHEROKU"),password=os.getenv("DBPASSWORDHEROKU"), port=os.getenv("DBPORTHEROKU"))
+    connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAMEOLD"), user=os.getenv("DBUSERNAME"),
+                            password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
     # создание интерфейса для sql запроса
     cursor = connection.cursor()
     zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения DESC;"
