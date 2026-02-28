@@ -112,8 +112,8 @@ async def get_vedomost():
     while True:
         next_row = cursor.fetchone()
         if next_row:
-            print(next_row[9])
-            print(next_row[8])
+            chasy=chasy+(next_row[9])/60
+            zarplata=zarplata+(next_row[10])/100
             vedomost.append(next_row)
             ws.append(next_row)
             ws.append([zarplata,chasy])
