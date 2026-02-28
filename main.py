@@ -111,8 +111,8 @@ async def get_vedomost():
     ws.title="Ведомость"
     while True:
         next_row = cursor.fetchone()
-        zarplata=zarplata+(int(next_row[10]))/100
-        chasy=chasy+(int(next_row[9]))/60
+        print(next_row[8])
+        print(next_row[9])
         if next_row:
             vedomost.append(next_row)
             ws.append(next_row)
