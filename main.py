@@ -17,7 +17,8 @@ from typing import Annotated
 from fastapi import Depends
 from fastapi.responses import FileResponse
 #работа с базой данных
-from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text, select
+from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text,BIGINT
+from sqlalchemy import select, delete, insert, update
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
@@ -148,16 +149,10 @@ async def get_vedomost():
                 Примечание=row[13])
                 session.add(urok_eksemp)
                 offset_rjada+=1
+            smdt=delete(Уроки)
+            await session.execute(smdt)
             await session.commit()
             await session.close()
-            connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"),
-            user=os.getenv("DBUSERNAME"), password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
-            # создание интерфейса для sql запроса
-            cursor = connection.cursor()
-            zapros = "DELETE FROM Уроки"
-            cursor.execute(zapros)
-            cursor.close()
-            connection.close()
             try:
                 ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
                 wb.save("Посчитать зарплату.xlsx")
