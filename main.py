@@ -154,7 +154,7 @@ async def get_vedomost():
             user=os.getenv("DBUSERNAME"), password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
             # создание интерфейса для sql запроса
             cursor = connection.cursor()
-            zapros = "delete * FROM Уроки"
+            zapros = "DELETE FROM Уроки"
             cursor.execute(zapros)
             cursor.close()
             connection.close()
