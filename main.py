@@ -57,6 +57,22 @@ class Уроки(Base):
     Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
     Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
     Примечание: Mapped[str] = mapped_column(Text, nullable=False)
+class Уроки_Архив(Base):
+    __tablename__ = "Уроки_Архив"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
+    Имя_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
+    Фамилия_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
+    Предмет_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Имя_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
+    Фамилия_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
+    Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Дата_Проведения: Mapped[str] = mapped_column(String(128), nullable=False)
+    Время_Начала: Mapped[str] = mapped_column(String(128), nullable=False)
+    Длительность_Занятия_Мин: Mapped[int]
+    Стоимость_Занятия_Центов: Mapped[int]
+    Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
+    Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
+    Примечание: Mapped[str] = mapped_column(Text, nullable=False)
 class Urok_Schema(BaseModel):
     Имя_Преподавателя: str = Field(min_length=5, max_length=25)
     Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
@@ -117,6 +133,18 @@ async def get_vedomost():
             vedomost.append(next_row)
             ws.append(next_row)
         else:
+            cursor.close()
+            connection.close()
+            for row in vedomost:
+                urok_eksemp = Уроки_Архив(id=row[0],Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[3],
+                Предмет_Обучения=row[4], Имя_Ученика=row[5],Фамилия_Ученика=row[6], Ступень_Обучения=row[7],
+                Дата_Проведения=row[8], Время_Начала=row[9],Длительность_Занятия_Мин=row[10],
+                Стоимость_Занятия_Центов=row[9],Что_Делали_На_Уроке=row[10], Задание_На_Дом=row[11],
+                Примечание=row[12])
+            session = session_factory()
+            session.add(urok_eksemp)
+            await session.commit()
+            await session.close()
             try:
                 ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
                 wb.save("Посчитать зарплату.xlsx")
