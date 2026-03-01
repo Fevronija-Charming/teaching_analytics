@@ -139,7 +139,7 @@ async def get_vedomost():
             offset_rjada=0
             for row in vedomost:
                 den_uroka=row[7]
-                cislo_mesjac=den_uroka[5]
+                cislo_mesjac=den_uroka[4]
                 id_uroka=100*int(cislo_mesjac)+offset_rjada
                 urok_eksemp = Уроки_Архив(id=id_uroka,Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
                 Предмет_Обучения=row[3], Имя_Ученика=row[4],Фамилия_Ученика=row[5], Ступень_Обучения=row[6],
