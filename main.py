@@ -135,14 +135,14 @@ async def get_vedomost():
         else:
             cursor.close()
             connection.close()
+            session = session_factory()
             for row in vedomost:
                 urok_eksemp = Уроки_Архив(id=row[0],Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
                 Предмет_Обучения=row[3], Имя_Ученика=row[4],Фамилия_Ученика=row[5], Ступень_Обучения=row[6],
                 Дата_Проведения=row[7], Время_Начала=row[8],Длительность_Занятия_Мин=row[9],
                 Стоимость_Занятия_Центов=row[10],Что_Делали_На_Уроке=row[11], Задание_На_Дом=row[12],
                 Примечание=row[13])
-            session = session_factory()
-            session.add(urok_eksemp)
+                session.add(urok_eksemp)
             await session.commit()
             await session.close()
             try:
