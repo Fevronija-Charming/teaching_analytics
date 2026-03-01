@@ -136,15 +136,28 @@ async def get_vedomost():
             cursor.close()
             connection.close()
             session = session_factory()
+            offset_rjada=0
             for row in vedomost:
-                urok_eksemp = Уроки_Архив(id=row[0],Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
+                den_uroka=row[7]
+                cislo_mesjac=den_uroka[5]
+                id_uroka=int(cislo_mesjac*100+offset_rjada)
+                urok_eksemp = Уроки_Архив(id=id_uroka,Имя_Преподавателя=row[1],Фамилия_Преподавателя=row[2],
                 Предмет_Обучения=row[3], Имя_Ученика=row[4],Фамилия_Ученика=row[5], Ступень_Обучения=row[6],
                 Дата_Проведения=row[7], Время_Начала=row[8],Длительность_Занятия_Мин=row[9],
                 Стоимость_Занятия_Центов=row[10],Что_Делали_На_Уроке=row[11], Задание_На_Дом=row[12],
                 Примечание=row[13])
                 session.add(urok_eksemp)
+                offset_rjada+=1
             await session.commit()
             await session.close()
+            connection = ps.connect(host=os.getenv("DBHOST"), database=os.getenv("DBNAME"),
+            user=os.getenv("DBUSERNAME"), password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
+            # создание интерфейса для sql запроса
+            cursor = connection.cursor()
+            zapros = "delete FROM Уроки"
+            cursor.execute(zapros)
+            cursor.close()
+            connection.close()
             try:
                 ws.append(["/","/","/","/","/","/","/","/","/",chasy,zarplata])
                 wb.save("Посчитать зарплату.xlsx")
