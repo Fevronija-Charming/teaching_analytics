@@ -5,14 +5,14 @@ import asyncio
 import os
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
+load_dotenv(find_dotenv())
+#заяц включён
 from faststream.rabbit.fastapi import RabbitBroker, RabbitRouter
-#выключаем зайца
-#router=RabbitRouter(host="localhost", port=5672)
+router=RabbitRouter(url=os.getenv("CLOUDAMQP_URL"))
 from fastapi import FastAPI
 from fastapi import HTTPException
 app = FastAPI()
 import uvicorn
-load_dotenv(find_dotenv())
 from typing import Annotated
 from fastapi import Depends
 from fastapi.responses import FileResponse
@@ -88,6 +88,7 @@ class Urok_Schema(BaseModel):
     Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
     Задание_На_Дом: str= Field(min_length=5, max_length=128)
     Примечание: str= Field(min_length=5, max_length=2000)
+@router.post("/urok", summary="Зарегестрировать урок", tags=["УРОКИ"])
 @app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
     try:
@@ -101,12 +102,12 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
                             Примечание=urok.Примечание)
         session = session_factory()
         session.add(urok_eksemp)
-        await session.commit()
-        await session.close()
+        #await session.commit()
+        #await session.close()
         try:
-            #выключаем зайца
-            #router.broker.publish(message="Добавлен новый урок", queue="UROKI")
-            #await router.broker.publish(message=f"{urok}", queue="UROKI")
+            #заяц включен
+            await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
+            await router.broker.publish(message=f"{urok}", queue="UROKI")
             return urok_eksemp
         except:
             raise HTTPException(status_code=500, detail="Проблема с брокером")
@@ -123,6 +124,7 @@ async def get_vedomost():
     vedomost=[]
     zarplata=0
     chasy=0
+    # создание excel fail
     wb=Workbook()
     ws=wb.active
     ws.title="Ведомость"
@@ -273,6 +275,7 @@ async def main():
     #создать предметы
     #await create_predmety()
     #await create_stupeni()
-#app.include_router(router)
+# заяц включён
+app.include_router(router)
 if __name__ == "__main__":
     asyncio.run(main())
