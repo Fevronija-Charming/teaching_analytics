@@ -103,8 +103,8 @@ async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
                             Примечание=urok.Примечание)
         session = session_factory()
         session.add(urok_eksemp)
-        #await session.commit()
-        #await session.close()
+        await session.commit()
+        await session.close()
         try:
             #заяц включен
             await router.broker.publish(message="Добавлен новый урок", queue="UROKI")
