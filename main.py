@@ -120,7 +120,7 @@ async def get_vedomost():
                             password=os.getenv("DBPASSWORD"), port=os.getenv("DBPORT"))
     # создание интерфейса для sql запроса
     cursor = connection.cursor()
-    zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения DESC;"
+    zapros = "SELECT * FROM Уроки ORDER BY Дата_Проведения ASC;"
     cursor.execute(zapros)
     vedomost=[]
     zarplata=0
