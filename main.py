@@ -60,7 +60,7 @@ async def create_project(background_task: BackgroundTasks,project_infa: Annotate
 Дата_изменения=vremja_format,Синхронизация=sekundi)
         session=session_factory()
         session.add(project_eksemprljar)
-        #await session.commit()
+        await session.commit()
     except:
         raise HTTPException(status_code=500, detail="Проблема с базой данных")
     await session.close()
