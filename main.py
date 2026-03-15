@@ -30,8 +30,9 @@ from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
 from typing import List
 configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
-                                      MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
                                       MAIL_FROM=os.getenv("MAIL_FROM"),
+                                      MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
+                                      MAIL_FROM_NAME=os.getenv("MAIL_FROM_NAME"),
 MAIL_PORT=os.getenv("MAIL_PORT"),MAIL_SERVER=os.getenv("MAIL_SERVER"),MAIL_STARTTLS=os.getenv("MAIL_STARTTLS"),
 MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS"),USE_CREDENTIALS=os.getenv("USE_CREDENTIALS"))
 #фоновая задача
@@ -70,7 +71,7 @@ async def create_project(background_task: BackgroundTasks,project_infa: Annotate
     except:
         raise HTTPException(status_code=500, detail="Проблема с брокером")
     try:
-        peremycka = "; ;"
+        peremycka = " -> "
         nazv_projekta_pochta = str(project_infa.Название_проекта)
         soobshenije1 = nazv_projekta_pochta
         kritery_zaver_pochta=str(project_infa.Критерий_завершенности)
@@ -95,7 +96,8 @@ async def create_project(background_task: BackgroundTasks,project_infa: Annotate
         soobshenije11 = soobshenije10 + peremycka + etap_9_pochta
         etap_10_pochta = str(project_infa.Этап_10)
         projekt_na_pochtu = soobshenije11 + peremycka + etap_10_pochta
-        background_task.add_task(send_email_async,"Добавлен новый проект","anton.tsizov@tkvg.ee",projekt_na_pochtu)
+        recipient=os.getenv("RECIPIENT1")
+        background_task.add_task(send_email_async,"Добавлен новый проект",recipient,projekt_na_pochtu)
         return project_infa, projekt_na_pochtu
     except:
         raise HTTPException(status_code=500, detail="Проблема с почтой")
