@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, ValidationError
 from openpyxl import Workbook
+from pydoc import plain
 import psycopg2 as ps
 import asyncio
 import os
@@ -23,33 +23,82 @@ from sqlalchemy import select, delete, insert, update
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
-from datamodels import Уроки, Уроки_Архив, Base, Проект,DeclarativeBase
+from datamodels import Уроки, Уроки_Архив, Base, Проект
 from datamodels import Project_Schema, Urok_Schema
+#конфигурация сервиса по отправке почты
+from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
+from pydantic import EmailStr,BaseModel
+from typing import List
+configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
+                                      MAIL_PASSWORD=os.getenv("MAIL_PASSWORD"),
+                                      MAIL_FROM=os.getenv("MAIL_FROM"),
+MAIL_PORT=os.getenv("MAIL_PORT"),MAIL_SERVER=os.getenv("MAIL_SERVER"),MAIL_STARTTLS=os.getenv("MAIL_STARTTLS"),
+MAIL_SSL_TLS=os.getenv("MAIL_SSL_TLS"),USE_CREDENTIALS=os.getenv("USE_CREDENTIALS"))
+#фоновая задача
+from fastapi import BackgroundTasks
+async def send_email_async(subject: str, recipients:str, body:str):
+    recipient_list = []
+    recipient_list.append(recipients)
+    message=MessageSchema(subject=subject,recipients=recipient_list,body=body)
+    fast_mail = FastMail(configuracija_pochty)
+    await fast_mail.send_message(message)
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
-async def create_project(project_infa: Annotated[Project_Schema, Depends()]):
-    tochnoje_vremja= str(datetime.datetime.now())
-    vremja_format = tochnoje_vremja[:-10]
-    sekundi= int(time.time())
-    project_eksemprljar=Проект(id=100,Название_проекта=project_infa.Название_проекта,
+async def create_project(background_task: BackgroundTasks,project_infa: Annotated[Project_Schema, Depends()]):
+    try:
+        tochnoje_vremja= str(datetime.datetime.now())
+        vremja_format = tochnoje_vremja[:-10]
+        sekundi= int(time.time())
+        project_eksemprljar=Проект(id=100,Название_проекта=project_infa.Название_проекта,
 Критерий_завершенности=project_infa.Критерий_завершенности, Завершённость_проекта=0,Этап_1=project_infa.Этап_1,
 Завершенность_Этап_1=0, Этап_2=project_infa.Этап_2,Завершенность_Этап_2=0, Этап_3=project_infa.Этап_3,Завершенность_Этап_3=0,
 Этап_4=project_infa.Этап_4, Завершенность_Этап_4=0, Этап_5=project_infa.Этап_5, Завершенность_Этап_5=0, Этап_6=project_infa.Этап_6,
 Завершенность_Этап_6=0, Этап_7=project_infa.Этап_7, Завершенность_Этап_7=0, Этап_8=project_infa.Этап_8, Завершенность_Этап_8=0,
 Этап_9=project_infa.Этап_9, Завершенность_Этап_9=0,Этап_10=project_infa.Этап_10, Завершенность_Этап_10=0, Дата_регистрации=vremja_format,
 Дата_изменения=vremja_format,Синхронизация=sekundi)
-    session=session_factory()
-    session.add(project_eksemprljar)
-    #await session.commit()
+        session=session_factory()
+        session.add(project_eksemprljar)
+        #await session.commit()
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
     await session.close()
     try:
         # заяц включен
         await router.broker.publish(message="Добавлен новый проект", queue="UROKI")
         await router.broker.publish(message=f"{project_infa}", queue="UROKI")
-        return project_infa
     except:
         raise HTTPException(status_code=500, detail="Проблема с брокером")
+    try:
+        peremycka = "; ;"
+        nazv_projekta_pochta = str(project_infa.Название_проекта)
+        soobshenije1 = nazv_projekta_pochta
+        kritery_zaver_pochta=str(project_infa.Критерий_завершенности)
+        soobshenije2 = soobshenije1 + peremycka + kritery_zaver_pochta
+        etap_1_pochta = str(project_infa.Этап_1)
+        soobshenije3 = soobshenije2 + peremycka + etap_1_pochta
+        etap_2_pochta = str(project_infa.Этап_2)
+        soobshenije4 = soobshenije3 + peremycka + etap_2_pochta
+        etap_3_pochta = str(project_infa.Этап_3)
+        soobshenije5 = soobshenije4 + peremycka + etap_3_pochta
+        etap_4_pochta = str(project_infa.Этап_4)
+        soobshenije6 = soobshenije5 + peremycka + etap_4_pochta
+        etap_5_pochta = str(project_infa.Этап_5)
+        soobshenije7 = soobshenije6 + peremycka + etap_5_pochta
+        etap_6_pochta = str(project_infa.Этап_6)
+        soobshenije8 = soobshenije7 + peremycka + etap_6_pochta
+        etap_7_pochta = str(project_infa.Этап_7)
+        soobshenije9 = soobshenije8 + peremycka + etap_7_pochta
+        etap_8_pochta = str(project_infa.Этап_8)
+        soobshenije10 = soobshenije9 + peremycka + etap_8_pochta
+        etap_9_pochta = str(project_infa.Этап_9)
+        soobshenije11 = soobshenije10 + peremycka + etap_9_pochta
+        etap_10_pochta = str(project_infa.Этап_10)
+        projekt_na_pochtu = soobshenije11 + peremycka + etap_10_pochta
+        background_task.add_task(send_email_async,"Добавлен новый проект","anton.tsizov@tkvg.ee",projekt_na_pochtu)
+        return project_infa, projekt_na_pochtu
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с почтой")
 @router.post("/urok", summary="Зарегестрировать урок", tags=["УРОКИ"])
 async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
     try:
