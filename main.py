@@ -20,12 +20,11 @@ from fastapi.responses import FileResponse
 #работа с базой данных
 from sqlalchemy import  DateTime, String, Float, Column, Integer, func, Text,BIGINT
 from sqlalchemy import select, delete, insert, update
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
 from datamodels import Project_Schema, Urok_Schema
-from datamodels import Уроки, Уроки_Архив, Base, Проект
+from datamodels import Уроки, Уроки_Архив, Base, Проект,DeclarativeBase
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
 @router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
