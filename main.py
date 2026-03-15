@@ -39,7 +39,7 @@ from fastapi import BackgroundTasks
 async def send_email_async(subject: str, recipients:str, body:str):
     recipient_list = []
     recipient_list.append(recipients)
-    message=MessageSchema(subject=subject,recipients=recipient_list,body=body)
+    message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageSchema.SUBTYPE_TEXT)
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
 #переключение на зайца
