@@ -92,8 +92,8 @@ class Project_Schema(BaseModel):
     Этап_6: str = Field(min_length=10, max_length=128)
     Этап_7: str = Field(min_length=10, max_length=128)
     Этап_8: str = Field(min_length=10, max_length=128)
-    Этап_9: Mapped[str] = Field(min_length=10, max_length=128)
-    Этап_10: Mapped[str] = Field(min_length=10, max_length=128)
+    Этап_9: str = Field(min_length=10, max_length=128)
+    Этап_10: str = Field(min_length=10, max_length=128)
 class Urok_Schema(BaseModel):
     Имя_Преподавателя: str = Field(min_length=5, max_length=25)
     Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
