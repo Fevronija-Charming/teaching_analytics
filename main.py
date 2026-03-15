@@ -3,6 +3,7 @@ from openpyxl import Workbook
 import psycopg2 as ps
 import asyncio
 import os
+import datetime, time
 from colorama import *
 from dotenv import find_dotenv, load_dotenv
 load_dotenv(find_dotenv())
@@ -23,73 +24,36 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 engine = create_async_engine(os.getenv("DBURL"),echo=True,max_overflow=5,pool_size=5)
 session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_commit=False)
-class Base(DeclarativeBase):
-    pass
-#class Ученики(Base):
-#__tablename__="Ученики"
-#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-#Фамилия: Mapped[str]=mapped_column(String(128), nullable=False)
-#Имя: Mapped[str]=mapped_column(String(128), nullable=False)
-#class Предметы(Base):
-#__tablename__="Предметы"
-#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-#Название_Предмета: Mapped[str]=mapped_column(String(32), nullable=False)
-#class Даты(Base):
-# __tablename__="Даты"
-#id: Mapped[int]=mapped_column(primary_key=True, autoincrement=True, nullable=False)
-#Дата: Mapped[str]=mapped_column(String(128), nullable=False)
-#class Ступени_Обучения(Base):
-# __tablename__ = "Ступени_Обучения"
-#id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
-#Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
-class Уроки(Base):
-    __tablename__ = "Уроки"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Имя_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
-    Фамилия_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
-    Предмет_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Имя_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
-    Фамилия_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
-    Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Дата_Проведения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Время_Начала: Mapped[str] = mapped_column(String(128), nullable=False)
-    Длительность_Занятия_Мин: Mapped[int]
-    Стоимость_Занятия_Центов: Mapped[int]
-    Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
-    Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
-    Примечание: Mapped[str] = mapped_column(Text, nullable=False)
-class Уроки_Архив(Base):
-    __tablename__ = "Уроки_Архив"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True, nullable=False)
-    Имя_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
-    Фамилия_Преподавателя: Mapped[str] = mapped_column(String(128), nullable=False)
-    Предмет_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Имя_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
-    Фамилия_Ученика: Mapped[str] = mapped_column(String(128), nullable=False)
-    Ступень_Обучения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Дата_Проведения: Mapped[str] = mapped_column(String(128), nullable=False)
-    Время_Начала: Mapped[str] = mapped_column(String(128), nullable=False)
-    Длительность_Занятия_Мин: Mapped[int]
-    Стоимость_Занятия_Центов: Mapped[int]
-    Что_Делали_На_Уроке: Mapped[str] = mapped_column(Text, nullable=False)
-    Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
-    Примечание: Mapped[str] = mapped_column(Text, nullable=False)
-class Urok_Schema(BaseModel):
-    Имя_Преподавателя: str = Field(min_length=5, max_length=25)
-    Фамилия_Преподавателя: str = Field(min_length=5, max_length=25)
-    Предмет_Обучения: str = Field(min_length=5, max_length=25)
-    Имя_Ученика: str= Field(min_length=5, max_length=25)
-    Фамилия_Ученика: str= Field(min_length=5, max_length=25)
-    Ступень_Обучения: str= Field(min_length=5, max_length=25)
-    Дата_Проведения: str= Field(min_length=5, max_length=25)
-    Время_Начала: str= Field(min_length=5, max_length=25)
-    Длительность_Занятия_Мин: int
-    Стоимость_Занятия_Центов: int
-    Что_Делали_На_Уроке: str= Field(min_length=5, max_length=2000)
-    Задание_На_Дом: str= Field(min_length=5, max_length=128)
-    Примечание: str= Field(min_length=5, max_length=2000)
+from datamodels import Project_Schema, Urok_Schema
+from datamodels import Уроки, Уроки_Архив, Base, Проект
 #переключение на зайца
 #@app.post("/urok", summary="Зарегестрировать урок",tags=["УРОКИ"])
+@router.post("/project", summary="Зарегестрировать проект", tags=["ПРОЕКТ"])
+async def create_project(project_infa: Annotated[Project_Schema, Depends()]):
+    tochnoje_vremja= str(datetime.datetime.now())
+    vremja_format = tochnoje_vremja[:-10]
+    sekundi= int(time.time())
+    try:
+        project_eksemprljar=Проект(id=100,Название_проекта=project_infa.Название_проекта,
+Критерий_Завершенности=project_infa.Критерий_завершенности, Завершённость_проекта=0,Этап_1=project_infa.Этап_1,
+Завершенность_Этап_1=0, Этап_2=project_infa.Этап_2,Завершенность_Этап_2=0, Этап_3=project_infa.Этап_3,Завершенность_Этап_3=0,
+Этап_4=project_infa.Этап_4, Завершенность_Этап_4=0, Этап_5=project_infa.Этап_5, Завершенность_Этап_5=0, Этап_6=project_infa.Этап_6,
+Завершенность_Этап_6=0, Этап_7=project_infa.Этап_7, Завершенность_Этап_7=0, Этап_8=project_infa.Этап_8, Завершенность_Этап_8=0,
+Этап_9=project_infa.Этап_9, Завершенность_Этап_9=0,Этап_10=project_infa.Этап_10, Завершенность_Этап_10=0, Дата_регистрации=vremja_format,
+Дата_изменения=vremja_format,Синхронизация=sekundi)
+        session=session_factory()
+        session.add(project_eksemprljar)
+        #await session.commit()
+        await session.close()
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с базой данных")
+    try:
+        # заяц включен
+        await router.broker.publish(message="Добавлен новый проект", queue="UROKI")
+        await router.broker.publish(message=f"{project_infa}", queue="UROKI")
+        return project_infa
+    except:
+        raise HTTPException(status_code=500, detail="Проблема с брокером")
 @router.post("/urok", summary="Зарегестрировать урок", tags=["УРОКИ"])
 async def create_urok(urok: Annotated[Urok_Schema, Depends()]):
     try:
