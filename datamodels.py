@@ -82,6 +82,7 @@ class Уроки_Архив(Base):
     Задание_На_Дом: Mapped[str] = mapped_column(String(128), nullable=False)
     Примечание: Mapped[str] = mapped_column(Text, nullable=False)
 class Project_Schema(BaseModel):
+    id: int
     Название_проекта: str = Field(min_length=10, max_length=128)
     Критерий_завершенности: str =  Field(min_length=10, max_length=128)
     Этап_1: str = Field(min_length=10, max_length=128)
