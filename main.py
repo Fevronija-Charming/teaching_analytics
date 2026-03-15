@@ -26,7 +26,7 @@ session_factory = async_sessionmaker(bind=engine,class_=AsyncSession,expire_on_c
 from datamodels import Уроки, Уроки_Архив, Base, Проект
 from datamodels import Project_Schema, Urok_Schema
 #конфигурация сервиса по отправке почты
-from fastapi_mail import FastMail,MessageSchema,ConnectionConfig
+from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
 from pydantic import EmailStr,BaseModel
 from typing import List
 configuracija_pochty=ConnectionConfig(MAIL_USERNAME=os.getenv("MAIL_USERNAME"),
@@ -39,7 +39,7 @@ from fastapi import BackgroundTasks
 async def send_email_async(subject: str, recipients:str, body:str):
     recipient_list = []
     recipient_list.append(recipients)
-    message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageSchema.SUBTYPE_TEXT)
+    message=MessageSchema(subject=subject,recipients=recipient_list,body=body,subtype=MessageType.plain)
     fast_mail = FastMail(configuracija_pochty)
     await fast_mail.send_message(message)
 #переключение на зайца
